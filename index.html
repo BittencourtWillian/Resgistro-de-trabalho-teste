@@ -106,16 +106,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/fireba
 import { getFirestore, collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDBZvkl_LNF2dknJMDnz1ADUs367Asgaoo",
-  authDomain: "marvel-cleaning.firebaseapp.com",
-  projectId: "marvel-cleaning",
-  storageBucket: "marvel-cleaning.appspot.com",
-  messagingSenderId: "1019742825233",
-  appId: "1:1019742825233:web:750e2037636e28af617ab0",
-  measurementId: "G-7032Q802JY"
+  apiKey: "AIzaSyA_unL-ObfYrhswlgJK9BZgDtENRqyeNqk",
+  authDomain: "registro-teste.firebaseapp.com",
+  projectId: "registro-teste",
+  storageBucket: "registro-teste.firebasestorage.app",
+  messagingSenderId: "380295278839",
+  appId: "1:380295278839:web:a6bb2e6e74e75972f363f2"
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
 let records = JSON.parse(localStorage.getItem("records")) || [];
