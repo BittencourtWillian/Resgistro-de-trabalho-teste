@@ -103,20 +103,20 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore }      from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA_unL-ObfYrhswlgJK9BZgDtENRqyeNqk",
   authDomain: "registro-teste.firebaseapp.com",
   projectId: "registro-teste",
-  storageBucket: "registro-teste.firebasestorage.app",
+  storageBucket: "registro-teste.appspot.com",
   messagingSenderId: "380295278839",
   appId: "1:380295278839:web:a6bb2e6e74e75972f363f2"
 };
 
 const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
 
-const db = getFirestore(app);
 
 let records = JSON.parse(localStorage.getItem("records")) || [];
 const rates = {
