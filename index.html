@@ -189,15 +189,28 @@ window.addRecord = async function () {
     records.push({ date: dateStr, role, location, hours, rate, day, id: docRef.id });
     localStorage.setItem("records", JSON.stringify(records));
     showRecords();
-  } catch (err) {
-    console.error("Error saving to Firestore:", err);
-    alert("Error saving data. Try again.");
-  }
+    
+    // Limpa os campos após sucesso
+    document.getElementById("date").value = "";
+    document.getElementById("role").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("hours").value = "";
 
-  document.getElementById("date").value = "";
-  document.getElementById("role").value = "";
-  document.getElementById("location").value = "";
-  document.getElementById("hours").value = "";
+  } catch (err) {
+    console.error("Erro detalhado no Firestore:", {
+      code: err.code,
+      message: err.message,
+      stack: err.stack
+    });
+    
+    alert(`Falha ao salvar os dados:\n\nCódigo: ${err.code}\n\nMensagem: ${err.message}`);
+    
+    // Mantém os dados preenchidos para o usuário corrigir
+    document.getElementById("date").value = dateStr;
+    document.getElementById("role").value = role;
+    document.getElementById("location").value = location;
+    document.getElementById("hours").value = hours;
+  }
 };
 
 window.deleteRecord = async function (index) {
