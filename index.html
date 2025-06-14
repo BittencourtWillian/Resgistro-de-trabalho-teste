@@ -4,19 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Work Log</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       background-image: url('https://images.unsplash.com/photo-1581579185169-8437c55b94fd?auto=format&fit=crop&w=1600&q=60');
       background-size: cover;
       background-attachment: fixed;
       background-repeat: no-repeat;
+      font-family: Arial, sans-serif;
     }
     .overlay {
       background: rgba(255, 255, 255, 0.95);
       padding: 20px;
       max-width: 700px;
-      margin: auto;
+      margin: 20px auto;
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
@@ -25,9 +25,72 @@
       display: block;
       margin: 0 auto 10px auto;
     }
-    .loading {
+    .centralizado {
+      text-align: center;
+    }
+    .btn-principal {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 0;
+      width: 100%;
+    }
+    .btn-atualizar {
+      background-color: #2196F3;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .registro {
+      background-color: #f9f9f9;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 400px;
+    }
+    .botoes-modal {
+      margin-top: 15px;
+      text-align: right;
+    }
+    #forceRefreshBtn.loading {
       opacity: 0.7;
       cursor: not-allowed;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    label {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -59,26 +122,25 @@
       </select>
     </div>
 
-    <div class="linha-dupla">
-      <div>
-        <label>Date</label>
-        <input type="date" id="date" />
-      </div>
-      <div>
-        <label>Role</label>
-        <select id="role">
-          <option value="">Select</option>
-          <option value="Cleaner">Cleaner</option>
-          <option value="Supervisor">Supervisor</option>
-          <option value="Laundry">Laundry</option>
-          <option value="Supervisor Laundry">Supervisor Laundry</option>
-        </select>
-      </div>
+    <div>
+      <label>Date</label>
+      <input type="date" id="date" />
+    </div>
+
+    <div>
+      <label>Role</label>
+      <select id="role">
+        <option value="">Select</option>
+        <option value="Cleaner">Cleaner</option>
+        <option value="Supervisor">Supervisor</option>
+        <option value="Laundry">Laundry</option>
+        <option value="Supervisor Laundry">Supervisor Laundry</option>
+      </select>
     </div>
 
     <div>
       <label>Worked Hours</label>
-      <input inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" id="hours" />
+      <input type="number" step="0.5" id="hours" />
     </div>
 
     <button class="btn-principal" onclick="addRecord()">➕ Add Record</button>
@@ -100,7 +162,7 @@
     <button id="btnSend" class="btn-principal" style="display:none;" onclick="sendEmail()">📤 Send for Payment</button>
 
     <footer class="rodape">
-      <button onclick="location.reload()" class="btn-atualizar">🔄 Refresh App</button>
+      <button onclick="resetApp()" class="btn-atualizar">🔄 New Cycle</button>
       <button onclick="changeUser()" class="btn-atualizar">👤 Change User</button>
     </footer>
   </div>
@@ -130,6 +192,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// App version
+const APP_VERSION = "2.4.0";
+localStorage.setItem('appVersion', APP_VERSION);
+
 let records = JSON.parse(localStorage.getItem("records")) || [];
 const rates = {
   "Cleaner": 13.5,
@@ -138,11 +204,51 @@ const rates = {
   "Supervisor Laundry": 14
 };
 
-const userName = localStorage.getItem("userName");
-if (!userName) {
-  document.getElementById("nameModal").style.display = "flex";
-} else {
-  document.getElementById("userDisplay").textContent = `User: ${userName}`;
+// Initialize app
+initializeAppWithCache();
+
+async function initializeAppWithCache() {
+  try {
+    // Load user data
+    const userName = localStorage.getItem("userName");
+    if (!userName) {
+      document.getElementById("nameModal").style.display = "flex";
+    } else {
+      document.getElementById("userDisplay").textContent = `User: ${userName}`;
+    }
+    
+    // Load records
+    await loadRecords();
+    
+  } catch (error) {
+    console.error("Initialization error:", error);
+    alert("App initialization failed. Please try refreshing.");
+  }
+}
+
+async function loadRecords() {
+  try {
+    // Load from Firestore
+    const querySnapshot = await getDocs(collection(db, "registros"));
+    const firestoreRecords = [];
+    
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      // Only show records for current user
+      if (data.name === localStorage.getItem("userName")) {
+        firestoreRecords.push({ ...data, id: doc.id });
+      }
+    });
+
+    records = firestoreRecords;
+    localStorage.setItem("records", JSON.stringify(records));
+    showRecords();
+    
+  } catch (error) {
+    console.error("Load records error:", error);
+    // Fallback to local storage if Firestore fails
+    showRecords();
+  }
 }
 
 window.confirmName = function () {
@@ -154,65 +260,24 @@ window.confirmName = function () {
   localStorage.setItem("userName", input);
   document.getElementById("nameModal").style.display = "none";
   document.getElementById("userDisplay").textContent = `User: ${input}`;
+  loadRecords();
 };
 
 window.changeUser = function () {
-  localStorage.removeItem("userName");
-  location.reload();
+  if (confirm("Change user will clear all current records.\nContinue?")) {
+    localStorage.removeItem("userName");
+    localStorage.removeItem("records");
+    records = [];
+    location.reload();
+  }
 };
 
-async function withLoading(fn, index) {
-  const buttons = document.querySelectorAll(`button[onclick^="deleteRecord"]`);
-  const button = buttons[index];
-  const originalText = button.innerHTML;
-  button.innerHTML = '⌛ Deleting...';
-  button.disabled = true;
-  
-  try {
-    await fn(index);
-  } finally {
-    button.innerHTML = originalText;
-    button.disabled = false;
-  }
-}
-
-window.deleteRecord = async function (index) {
-  const record = records[index];
-  
-  if (!record) {
-    alert("Record not found!");
-    return;
-  }
-
-  try {
-    if (record.id) {
-      await deleteDoc(doc(db, "registros", record.id));
-    }
-    
-    records.splice(index, 1);
-    localStorage.setItem("records", JSON.stringify(records));
+window.resetApp = function() {
+  if (confirm("Start new cycle will clear all current records.\nContinue?")) {
+    localStorage.removeItem("records");
+    records = [];
     showRecords();
-    
-  } catch (err) {
-    console.error("Error deleting record:", err);
-    alert(`Failed to delete record: ${err.message}`);
-    
-    try {
-      const querySnapshot = await getDocs(collection(db, "registros"));
-      const freshRecords = [];
-      
-      querySnapshot.forEach((doc) => {
-        freshRecords.push({ ...doc.data(), id: doc.id });
-      });
-      
-      records = freshRecords;
-      localStorage.setItem("records", JSON.stringify(freshRecords));
-      showRecords();
-      
-    } catch (syncError) {
-      console.error("Sync failed:", syncError);
-      alert("Could not sync with server. Please refresh the page.");
-    }
+    alert("New cycle started. Ready for new records.");
   }
 };
 
@@ -248,24 +313,34 @@ window.addRecord = async function () {
     localStorage.setItem("records", JSON.stringify(records));
     showRecords();
     
+    // Clear input fields
     document.getElementById("date").value = "";
     document.getElementById("role").value = "";
     document.getElementById("location").value = "";
     document.getElementById("hours").value = "";
 
   } catch (err) {
-    console.error("Error saving data:", {
-      code: err.code,
-      message: err.message,
-      stack: err.stack
-    });
-    
-    alert(`Failed to save data:\n\nCode: ${err.code}\n\nMessage: ${err.message}`);
-    
-    document.getElementById("date").value = dateStr;
-    document.getElementById("role").value = role;
-    document.getElementById("location").value = location;
-    document.getElementById("hours").value = hours;
+    console.error("Error saving data:", err);
+    alert(`Failed to save data:\n\n${err.message}`);
+  }
+};
+
+window.deleteRecord = async function (index) {
+  if (!confirm("Delete this record permanently?")) return;
+  
+  const record = records[index];
+  if (!record) return;
+
+  try {
+    if (record.id) {
+      await deleteDoc(doc(db, "registros", record.id));
+    }
+    records.splice(index, 1);
+    localStorage.setItem("records", JSON.stringify(records));
+    showRecords();
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Failed to delete record. Please try again.");
   }
 };
 
@@ -273,14 +348,21 @@ function showRecords() {
   const div = document.getElementById("recordList");
   div.innerHTML = "";
 
+  if (records.length === 0) {
+    div.innerHTML = "<p>No records yet. Add your first record above.</p>";
+    return;
+  }
+
   records.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach((r, index) => {
     const icon = r.role.includes("Supervisor") ? "💼" : "🧹";
     const item = document.createElement("div");
     item.className = "registro";
     item.innerHTML = `
-      <div><strong>${r.date}</strong><br>
-      📍 ${r.location} | ${icon} ${r.role} | ⏱️ ${r.hours}h</div>
-      <button onclick="withLoading(deleteRecord, ${index})">Delete</button>
+      <div>
+        <strong>${r.date}</strong><br>
+        📍 ${r.location} | ${icon} ${r.role} | ⏱️ ${r.hours}h
+      </div>
+      <button onclick="deleteRecord(${index})">Delete</button>
     `;
     div.appendChild(item);
   });
@@ -303,7 +385,7 @@ window.generateReport = function () {
     return;
   }
 
-  let table = `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;text-align:left;">
+  let table = `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;text-align:left;width:100%;margin:10px 0;">
     <tr><th>Date</th><th>Location</th><th>Role</th><th>Hours</th></tr>`;
 
   filtered.forEach(r => {
@@ -342,10 +424,27 @@ window.generateReport = function () {
 
 window.sendEmail = function () {
   const name = localStorage.getItem("userName");
-  const filtered = records;
-  const monthName = new Date(filtered[0].date).toLocaleString('default', { month: 'long' });
-  const label = document.getElementById("period").selectedOptions[0].text;
+  const period = document.getElementById("period").value;
+  
+  if (!period) {
+    alert("Please select a period first.");
+    return;
+  }
 
+  const label = document.getElementById("period").selectedOptions[0].text;
+  const filtered = records.filter(r => {
+    const day = r.day;
+    return (period === "1" && day <= 15) || 
+           (period === "2" && day > 15) || 
+           (period === "M");
+  });
+
+  if (filtered.length === 0) {
+    alert("No records in selected period.");
+    return;
+  }
+
+  const monthName = new Date(filtered[0].date).toLocaleString('default', { month: 'long' });
   const reportLines = [];
   reportLines.push(`Payment Report – ${label}`);
   reportLines.push("----------------------------------\n");
@@ -378,21 +477,24 @@ window.sendEmail = function () {
   const subject = encodeURIComponent(`Payment Request ${monthName}: ${name}`);
   const body = encodeURIComponent(reportLines.join("\n"));
   const mailto = `mailto:fabiana@marvelcleaningservices.ie?subject=${subject}&body=${body}`;
+  
+  // Clear data after sending
+  records = records.filter(r => !filtered.includes(r));
+  localStorage.setItem("records", JSON.stringify(records));
+  document.getElementById("report").style.display = "none";
+  document.getElementById("btnSend").style.display = "none";
+  showRecords();
+  
+  // Open email client
   window.location.href = mailto;
-
-  localStorage.removeItem("userName");
-  localStorage.removeItem("records");
-  setTimeout(() => location.reload(), 1000);
 };
 
-showRecords();
-
+// Initialize scroll behavior
 document.querySelectorAll('input, select').forEach(el => {
   el.addEventListener('blur', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
-
 </script>
 </body>
 </html>
