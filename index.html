@@ -4,19 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Work Log</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       background-image: url('https://images.unsplash.com/photo-1581579185169-8437c55b94fd?auto=format&fit=crop&w=1600&q=60');
       background-size: cover;
       background-attachment: fixed;
       background-repeat: no-repeat;
-      font-family: Arial, sans-serif;
     }
     .overlay {
       background: rgba(255, 255, 255, 0.95);
       padding: 20px;
       max-width: 700px;
-      margin: 20px auto;
+      margin: auto;
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
@@ -24,73 +24,6 @@
       width: 100px;
       display: block;
       margin: 0 auto 10px auto;
-    }
-    .centralizado {
-      text-align: center;
-    }
-    .btn-principal {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 10px 0;
-      width: 100%;
-    }
-    .btn-atualizar {
-      background-color: #2196F3;
-      color: white;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 5px;
-    }
-    .registro {
-      background-color: #f9f9f9;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 400px;
-    }
-    .botoes-modal {
-      margin-top: 15px;
-      text-align: right;
-    }
-    #forceRefreshBtn.loading {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-    select, input {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0 15px 0;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    label {
-      font-weight: bold;
     }
   </style>
 </head>
@@ -122,25 +55,26 @@
       </select>
     </div>
 
-    <div>
-      <label>Date</label>
-      <input type="date" id="date" />
-    </div>
-
-    <div>
-      <label>Role</label>
-      <select id="role">
-        <option value="">Select</option>
-        <option value="Cleaner">Cleaner</option>
-        <option value="Supervisor">Supervisor</option>
-        <option value="Laundry">Laundry</option>
-        <option value="Supervisor Laundry">Supervisor Laundry</option>
-      </select>
+    <div class="linha-dupla">
+      <div>
+        <label>Date</label>
+        <input type="date" id="date" />
+      </div>
+      <div>
+        <label>Role</label>
+        <select id="role">
+          <option value="">Select</option>
+          <option value="Cleaner">Cleaner</option>
+          <option value="Supervisor">Supervisor</option>
+          <option value="Laundry">Laundry</option>
+          <option value="Supervisor Laundry">Supervisor Laundry</option>
+        </select>
+      </div>
     </div>
 
     <div>
       <label>Worked Hours</label>
-      <input type="number" step="0.5" id="hours" />
+      <input inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" id="hours" />
     </div>
 
     <button class="btn-principal" onclick="addRecord()">➕ Add Record</button>
@@ -157,344 +91,241 @@
       <option value="M">Full month (1 to 31)</option>
     </select>
     <button class="btn-principal" onclick="generateReport()">📄 Generate Report</button>
-
     <div id="report" class="relatorio" style="display:none;"></div>
     <button id="btnSend" class="btn-principal" style="display:none;" onclick="sendEmail()">📤 Send for Payment</button>
 
     <footer class="rodape">
-      <button onclick="resetApp()" class="btn-atualizar">🔄 New Cycle</button>
+      <button onclick="updateApp()" class="btn-atualizar">🔁 Update App</button>
       <button onclick="changeUser()" class="btn-atualizar">👤 Change User</button>
     </footer>
   </div>
 
-<script type="module">
-import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  deleteDoc,
-  doc,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA_unL-ObfYrhswlgJK9BZgDtENRqyeNqk",
-  authDomain: "registro-teste.firebaseapp.com",
-  projectId: "registro-teste",
-  storageBucket: "registro-teste.appspot.com",
-  messagingSenderId: "380295278839",
-  appId: "1:380295278839:web:a6bb2e6e74e75972f363f2"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_unL-ObfYrhswlgJK9BZgDtENRqyeNqk",
+      authDomain: "registro-teste.firebaseapp.com",
+      projectId: "registro-teste",
+      storageBucket: "registro-teste.appspot.com",
+      messagingSenderId: "380295278839",
+      appId: "1:380295278839:web:a6bb2e6e74e75972f363f2"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-// App version
-const APP_VERSION = "2.4.0";
-localStorage.setItem('appVersion', APP_VERSION);
+    window.updateApp = function () {
+      if (confirm("This will clear local records and reload from the database. Proceed?")) {
+        localStorage.removeItem("records");
+        location.reload();
+      }
+    };
 
-let records = JSON.parse(localStorage.getItem("records")) || [];
-const rates = {
-  "Cleaner": 13.5,
-  "Supervisor": 15,
-  "Laundry": 13.5,
-  "Supervisor Laundry": 14
-};
+    let records = JSON.parse(localStorage.getItem("records")) || [];
+    const rates = {
+      "Cleaner": 13.5,
+      "Supervisor": 15,
+      "Laundry": 13.5,
+      "Supervisor Laundry": 14
+    };
 
-// Initialize app
-initializeAppWithCache();
-
-async function initializeAppWithCache() {
-  try {
-    // Load user data
     const userName = localStorage.getItem("userName");
     if (!userName) {
       document.getElementById("nameModal").style.display = "flex";
     } else {
       document.getElementById("userDisplay").textContent = `User: ${userName}`;
     }
-    
-    // Load records
-    await loadRecords();
-    
-  } catch (error) {
-    console.error("Initialization error:", error);
-    alert("App initialization failed. Please try refreshing.");
-  }
-}
 
-async function loadRecords() {
-  try {
-    // Load from Firestore
-    const querySnapshot = await getDocs(collection(db, "registros"));
-    const firestoreRecords = [];
-    
-    querySnapshot.forEach(doc => {
-      const data = doc.data();
-      // Only show records for current user
-      if (data.name === localStorage.getItem("userName")) {
-        firestoreRecords.push({ ...data, id: doc.id });
+    window.confirmName = function () {
+      const input = document.getElementById("inputName").value.trim();
+      if (!input || input.length < 3) {
+        alert("Please enter a valid name.");
+        return;
       }
-    });
+      localStorage.setItem("userName", input);
+      document.getElementById("nameModal").style.display = "none";
+      document.getElementById("userDisplay").textContent = `User: ${input}`;
+    };
 
-    records = firestoreRecords;
-    localStorage.setItem("records", JSON.stringify(records));
-    showRecords();
-    
-  } catch (error) {
-    console.error("Load records error:", error);
-    // Fallback to local storage if Firestore fails
-    showRecords();
-  }
-}
+    window.changeUser = function () {
+      localStorage.removeItem("userName");
+      location.reload();
+    };
 
-window.confirmName = function () {
-  const input = document.getElementById("inputName").value.trim();
-  if (!input || input.length < 3) {
-    alert("Please enter a valid name.");
-    return;
-  }
-  localStorage.setItem("userName", input);
-  document.getElementById("nameModal").style.display = "none";
-  document.getElementById("userDisplay").textContent = `User: ${input}`;
-  loadRecords();
-};
+    window.addRecord = async function () {
+      const dateStr = document.getElementById("date").value;
+      const role = document.getElementById("role").value;
+      const location = document.getElementById("location").value;
+      const hours = parseFloat(document.getElementById("hours").value);
+      const name = localStorage.getItem("userName");
 
-window.changeUser = function () {
-  if (confirm("Change user will clear all current records.\nContinue?")) {
-    localStorage.removeItem("userName");
-    localStorage.removeItem("records");
-    records = [];
-    location.reload();
-  }
-};
+      if (!dateStr || !role || !location || isNaN(hours) || !name) {
+        alert("Please complete all fields correctly.");
+        return;
+      }
 
-window.resetApp = function() {
-  if (confirm("Start new cycle will clear all current records.\nContinue?")) {
-    localStorage.removeItem("records");
-    records = [];
-    showRecords();
-    alert("New cycle started. Ready for new records.");
-  }
-};
+      const date = new Date(dateStr);
+      const day = date.getDate();
+      const rate = rates[role];
 
-window.addRecord = async function () {
-  const dateStr = document.getElementById("date").value;
-  const role = document.getElementById("role").value;
-  const location = document.getElementById("location").value;
-  const hours = parseFloat(document.getElementById("hours").value);
-  const name = localStorage.getItem("userName");
+      try {
+        const docRef = await addDoc(collection(db, "registros"), {
+          name, date: dateStr, day, role, location, hours, rate,
+          sentAt: new Date().toISOString()
+        });
 
-  if (!dateStr || !role || !location || isNaN(hours) || !name) {
-    alert("Please complete all fields correctly.");
-    return;
-  }
+        records.push({ date: dateStr, role, location, hours, rate, day, id: docRef.id });
+        localStorage.setItem("records", JSON.stringify(records));
+        showRecords();
 
-  const date = new Date(dateStr);
-  const day = date.getDate();
-  const rate = rates[role];
+        document.getElementById("date").value = "";
+        document.getElementById("role").value = "";
+        document.getElementById("location").value = "";
+        document.getElementById("hours").value = "";
 
-  try {
-    const docRef = await addDoc(collection(db, "registros"), {
-      name,
-      date: dateStr,
-      day,
-      role,
-      location,
-      hours,
-      rate,
-      sentAt: new Date().toISOString()
-    });
+      } catch (err) {
+        alert(`Error saving data: ${err.message}`);
+      }
+    };
 
-    records.push({ date: dateStr, role, location, hours, rate, day, id: docRef.id });
-    localStorage.setItem("records", JSON.stringify(records));
-    showRecords();
-    
-    // Clear input fields
-    document.getElementById("date").value = "";
-    document.getElementById("role").value = "";
-    document.getElementById("location").value = "";
-    document.getElementById("hours").value = "";
+    window.deleteRecord = async function (index) {
+      const record = records[index];
 
-  } catch (err) {
-    console.error("Error saving data:", err);
-    alert(`Failed to save data:\n\n${err.message}`);
-  }
-};
+      if (!record.id) {
+        alert("⚠️ Cannot delete from database: no ID found. Only removed locally.");
+        records.splice(index, 1);
+        localStorage.setItem("records", JSON.stringify(records));
+        showRecords();
+        return;
+      }
 
-window.deleteRecord = async function (index) {
-  if (!confirm("Delete this record permanently?")) return;
-  
-  const record = records[index];
-  if (!record) return;
+      try {
+        await deleteDoc(doc(db, "registros", record.id));
+        records.splice(index, 1);
+        localStorage.setItem("records", JSON.stringify(records));
+        showRecords();
+      } catch (err) {
+        alert("Error deleting record: " + err.message);
+      }
+    };
 
-  try {
-    if (record.id) {
-      await deleteDoc(doc(db, "registros", record.id));
+    function showRecords() {
+      const div = document.getElementById("recordList");
+      div.innerHTML = "";
+      records.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach((r, index) => {
+        const item = document.createElement("div");
+        item.className = "registro";
+        item.innerHTML = `
+          <div><strong>${r.date}</strong><br>
+          📍 ${r.location} | 🛠️ ${r.role} | ⏱️ ${r.hours}h</div>
+          <button onclick="deleteRecord(${index})">Delete</button>
+        `;
+        div.appendChild(item);
+      });
     }
-    records.splice(index, 1);
-    localStorage.setItem("records", JSON.stringify(records));
+
+    window.generateReport = function () {
+      const p = document.getElementById("period").value;
+      if (!p) {
+        alert("Please select a period.");
+        return;
+      }
+
+      let start = 1, end = 31, label = "Full Month (1-31)";
+      if (p === "1") { start = 1; end = 15; label = "1st Half (1-15)"; }
+      else if (p === "2") { start = 16; end = 31; label = "2nd Half (16-31)"; }
+
+      const filtered = records.filter(r => r.day >= start && r.day <= end);
+      if (filtered.length === 0) {
+        alert("No records in this period.");
+        return;
+      }
+
+      let table = `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;text-align:left;">
+        <tr><th>Date</th><th>Location</th><th>Role</th><th>Hours</th></tr>`;
+
+      filtered.forEach(r => {
+        const [year, month, day] = r.date.split("-");
+        table += `<tr>
+          <td>${day}/${month}/${year}</td>
+          <td>${r.location}</td>
+          <td>${r.role}</td>
+          <td>${r.hours}</td>
+        </tr>`;
+      });
+
+      table += `</table>`;
+
+      let summary = {}, total = 0;
+      filtered.forEach(r => {
+        if (!summary[r.role]) summary[r.role] = { hours: 0, total: 0, rate: r.rate };
+        summary[r.role].hours += r.hours;
+        summary[r.role].total += r.hours * r.rate;
+        total += r.hours * r.rate;
+      });
+
+      let summaryHtml = `<br><b>Summary by Role:</b><br>`;
+      for (let role in summary) {
+        const s = summary[role];
+        summaryHtml += `${role}: ${s.hours}h x €${s.rate.toFixed(2)} = €${s.total.toFixed(2)}<br>`;
+      }
+      summaryHtml += `<br><span style="background: yellow; font-weight: bold;">Total: €${total.toFixed(2)}</span>`;
+
+      const finalReport = `Payment Report - ${label}<br><br>${table}${summaryHtml}`;
+
+      document.getElementById("report").innerHTML = finalReport;
+      document.getElementById("report").style.display = "block";
+      document.getElementById("btnSend").style.display = "inline-block";
+    };
+
+    window.sendEmail = function () {
+      const name = localStorage.getItem("userName");
+      const filtered = records;
+      const monthName = new Date(filtered[0].date).toLocaleString('default', { month: 'long' });
+      const label = document.getElementById("period").selectedOptions[0].text;
+
+      const reportLines = [];
+      reportLines.push(`Payment Report – ${label}`);
+      reportLines.push("----------------------------------\n");
+      reportLines.push("Worked Days:");
+
+      filtered.forEach(r => {
+        const [year, month, day] = r.date.split("-");
+        reportLines.push(`${day}/${month}/${year} | ${r.location} | ${r.role} | ${r.hours} hours`);
+      });
+
+      reportLines.push("\n----------------------------------\n");
+      reportLines.push("Summary by Role:");
+
+      let summary = {}, total = 0;
+      filtered.forEach(r => {
+        if (!summary[r.role]) summary[r.role] = { hours: 0, total: 0, rate: r.rate };
+        summary[r.role].hours += r.hours;
+        summary[r.role].total += r.hours * r.rate;
+        total += r.hours * r.rate;
+      });
+
+      for (let role in summary) {
+        const s = summary[role];
+        reportLines.push(`${role}: ${s.hours}h x €${s.rate.toFixed(2)} = €${s.total.toFixed(2)}`);
+      }
+
+      reportLines.push("\n----------------------------------\n");
+      reportLines.push(`Total: €${total.toFixed(2)}`);
+
+      const subject = encodeURIComponent(`Payment Request ${monthName}: ${name}`);
+      const body = encodeURIComponent(reportLines.join("\n"));
+      const mailto = `mailto:fabiana@marvelcleaningservices.ie?subject=${subject}&body=${body}`;
+      window.location.href = mailto;
+
+      localStorage.removeItem("userName");
+      localStorage.removeItem("records");
+      setTimeout(() => location.reload(), 1000);
+    };
+
     showRecords();
-  } catch (err) {
-    console.error("Delete error:", err);
-    alert("Failed to delete record. Please try again.");
-  }
-};
-
-function showRecords() {
-  const div = document.getElementById("recordList");
-  div.innerHTML = "";
-
-  if (records.length === 0) {
-    div.innerHTML = "<p>No records yet. Add your first record above.</p>";
-    return;
-  }
-
-  records.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach((r, index) => {
-    const icon = r.role.includes("Supervisor") ? "💼" : "🧹";
-    const item = document.createElement("div");
-    item.className = "registro";
-    item.innerHTML = `
-      <div>
-        <strong>${r.date}</strong><br>
-        📍 ${r.location} | ${icon} ${r.role} | ⏱️ ${r.hours}h
-      </div>
-      <button onclick="deleteRecord(${index})">Delete</button>
-    `;
-    div.appendChild(item);
-  });
-}
-
-window.generateReport = function () {
-  const p = document.getElementById("period").value;
-  if (!p) {
-    alert("Please select a period.");
-    return;
-  }
-
-  let start = 1, end = 31, label = "Full Month (1-31)";
-  if (p === "1") { start = 1; end = 15; label = "1st Half (1-15)"; }
-  else if (p === "2") { start = 16; end = 31; label = "2nd Half (16-31)"; }
-
-  const filtered = records.filter(r => r.day >= start && r.day <= end);
-  if (filtered.length === 0) {
-    alert("No records in this period.");
-    return;
-  }
-
-  let table = `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;text-align:left;width:100%;margin:10px 0;">
-    <tr><th>Date</th><th>Location</th><th>Role</th><th>Hours</th></tr>`;
-
-  filtered.forEach(r => {
-    const [year, month, day] = r.date.split("-");
-    table += `<tr>
-      <td>${day}/${month}/${year}</td>
-      <td>${r.location}</td>
-      <td>${r.role}</td>
-      <td>${r.hours}</td>
-    </tr>`;
-  });
-
-  table += `</table>`;
-
-  let summary = {}, total = 0;
-  filtered.forEach(r => {
-    if (!summary[r.role]) summary[r.role] = { hours: 0, total: 0, rate: r.rate };
-    summary[r.role].hours += r.hours;
-    summary[r.role].total += r.hours * r.rate;
-    total += r.hours * r.rate;
-  });
-
-  let summaryHtml = `<br><b>Summary by Role:</b><br>`;
-  for (let role in summary) {
-    const s = summary[role];
-    summaryHtml += `${role}: ${s.hours}h x €${s.rate.toFixed(2)} = €${s.total.toFixed(2)}<br>`;
-  }
-  summaryHtml += `<br><span style="background: yellow; font-weight: bold;">Total: €${total.toFixed(2)}</span>`;
-
-  const finalReport = `Payment Report - ${label}<br><br>${table}${summaryHtml}`;
-
-  document.getElementById("report").innerHTML = finalReport;
-  document.getElementById("report").style.display = "block";
-  document.getElementById("btnSend").style.display = "inline-block";
-};
-
-window.sendEmail = function () {
-  const name = localStorage.getItem("userName");
-  const period = document.getElementById("period").value;
-  
-  if (!period) {
-    alert("Please select a period first.");
-    return;
-  }
-
-  const label = document.getElementById("period").selectedOptions[0].text;
-  const filtered = records.filter(r => {
-    const day = r.day;
-    return (period === "1" && day <= 15) || 
-           (period === "2" && day > 15) || 
-           (period === "M");
-  });
-
-  if (filtered.length === 0) {
-    alert("No records in selected period.");
-    return;
-  }
-
-  const monthName = new Date(filtered[0].date).toLocaleString('default', { month: 'long' });
-  const reportLines = [];
-  reportLines.push(`Payment Report – ${label}`);
-  reportLines.push("----------------------------------\n");
-  reportLines.push("Worked Days:");
-
-  filtered.forEach(r => {
-    const [year, month, day] = r.date.split("-");
-    reportLines.push(`${day}/${month}/${year} | ${r.location} | ${r.role} | ${r.hours} hours`);
-  });
-
-  reportLines.push("\n----------------------------------\n");
-  reportLines.push("Summary by Role:");
-
-  let summary = {}, total = 0;
-  filtered.forEach(r => {
-    if (!summary[r.role]) summary[r.role] = { hours: 0, total: 0, rate: r.rate };
-    summary[r.role].hours += r.hours;
-    summary[r.role].total += r.hours * r.rate;
-    total += r.hours * r.rate;
-  });
-
-  for (let role in summary) {
-    const s = summary[role];
-    reportLines.push(`${role}: ${s.hours}h x €${s.rate.toFixed(2)} = €${s.total.toFixed(2)}`);
-  }
-
-  reportLines.push("\n----------------------------------\n");
-  reportLines.push(`Total: €${total.toFixed(2)}`);
-
-  const subject = encodeURIComponent(`Payment Request ${monthName}: ${name}`);
-  const body = encodeURIComponent(reportLines.join("\n"));
-  const mailto = `mailto:fabiana@marvelcleaningservices.ie?subject=${subject}&body=${body}`;
-  
-  // Clear data after sending
-  records = records.filter(r => !filtered.includes(r));
-  localStorage.setItem("records", JSON.stringify(records));
-  document.getElementById("report").style.display = "none";
-  document.getElementById("btnSend").style.display = "none";
-  showRecords();
-  
-  // Open email client
-  window.location.href = mailto;
-};
-
-// Initialize scroll behavior
-document.querySelectorAll('input, select').forEach(el => {
-  el.addEventListener('blur', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-});
-</script>
+  </script>
 </body>
 </html>
